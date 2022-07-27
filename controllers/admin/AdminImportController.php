@@ -3373,7 +3373,7 @@ class AdminImportControllerCore extends AdminController
         }
 
         if (isset($address->state) && is_numeric($address->state)) {
-            if (State::getNameById((int) $address->state)) {
+            if (State::getNameById(Configuration::get('PS_LANG_DEFAULT'), (int) $address->state)) {
                 $address->id_state = (int) $address->state;
             }
         } elseif (isset($address->state) && is_string($address->state) && !empty($address->state)) {
@@ -3382,7 +3382,7 @@ class AdminImportControllerCore extends AdminController
             } else {
                 $state = new State();
                 $state->active = 1;
-                $state->name = $address->state;
+                $state->name = AdminImportController::createMultiLangField($address->state);
                 $state->id_country = isset($country->id) ? (int) $country->id : 0;
                 $state->id_zone = 0; // Default zone for state to create
                 $state->iso_code = Tools::strtoupper(Tools::substr($address->state, 0, 2)); // Default iso for state to create
@@ -3394,10 +3394,11 @@ class AdminImportControllerCore extends AdminController
                     $address->id_state = (int) $state->id;
                 } else {
                     if (!$validateOnly) {
+                        $default_language_id = (int) Configuration::get('PS_LANG_DEFAULT');
                         $this->errors[] = $this->trans(
                             '%data% cannot be saved',
                             [
-                                '%data%' => Tools::htmlentitiesUTF8($state->name),
+                                '%data%' => Tools::htmlentitiesUTF8($state->name[$default_language_id]),
                             ],
                             'Admin.Advparameters.Notification'
                         );
@@ -4007,7 +4008,7 @@ class AdminImportControllerCore extends AdminController
         }
 
         if (isset($store->state) && is_numeric($store->state)) {
-            if (State::getNameById((int) $store->state)) {
+            if (State::getNameById(Configuration::get('PS_LANG_DEFAULT'), (int) $store->state)) {
                 $store->id_state = (int) $store->state;
             }
         } elseif (isset($store->state) && is_string($store->state) && !empty($store->state)) {
@@ -4016,7 +4017,7 @@ class AdminImportControllerCore extends AdminController
             } else {
                 $state = new State();
                 $state->active = 1;
-                $state->name = $store->state;
+                $state->name = AdminImportController::createMultiLangField($store->state);
                 $state->id_country = isset($country->id) ? (int) $country->id : 0;
                 $state->id_zone = 0; // Default zone for state to create
                 $state->iso_code = Tools::strtoupper(Tools::substr($store->state, 0, 2)); // Default iso for state to create
@@ -4028,10 +4029,11 @@ class AdminImportControllerCore extends AdminController
                     $store->id_state = (int) $state->id;
                 } else {
                     if (!$validateOnly) {
+                        $default_language_id = (int) Configuration::get('PS_LANG_DEFAULT');
                         $this->errors[] = $this->trans(
                             '%data% cannot be saved',
                             [
-                                '%data%' => Tools::htmlentitiesUTF8($state->name),
+                                '%data%' => Tools::htmlentitiesUTF8($state->name[$default_language_id]),
                             ],
                             'Admin.Advparameters.Notification'
                         );

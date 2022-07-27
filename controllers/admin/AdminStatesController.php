@@ -34,7 +34,7 @@ class AdminStatesControllerCore extends AdminController
         $this->bootstrap = true;
         $this->table = 'state';
         $this->className = 'State';
-        $this->lang = false;
+        $this->lang = true;
         $this->requiredDatabase = true;
 
         parent::__construct();
@@ -51,10 +51,11 @@ class AdminStatesControllerCore extends AdminController
             'AffectZone' => ['text' => $this->trans('Assign to a new zone', [], 'Admin.International.Feature')],
         ];
 
-        $this->_select = 'z.`name` AS zone, cl.`name` AS country';
+        $this->_select = 'z.`name` AS zone, cl.`name` AS country, sl.`name` AS name';
         $this->_join = '
 		LEFT JOIN `' . _DB_PREFIX_ . 'zone` z ON (z.`id_zone` = a.`id_zone`)
-		LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (cl.`id_country` = a.`id_country` AND cl.id_lang = ' . (int) $this->context->language->id . ')';
+		LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (cl.`id_country` = a.`id_country` AND cl.id_lang = ' . (int) $this->context->language->id . ')
+        LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` sl ON (sl.`id_state` = a.`id_state` AND sl.id_lang = ' . (int) $this->context->language->id . ')';
         $this->_use_found_rows = false;
 
         $countries_array = $zones_array = [];
@@ -75,7 +76,7 @@ class AdminStatesControllerCore extends AdminController
             ],
             'name' => [
                 'title' => $this->trans('Name', [], 'Admin.Global'),
-                'filter_key' => 'a!name',
+                'filter_key' => 'b!name',
             ],
             'iso_code' => [
                 'title' => $this->trans('ISO code', [], 'Admin.International.Feature'),
@@ -153,6 +154,7 @@ class AdminStatesControllerCore extends AdminController
                     'type' => 'text',
                     'label' => $this->trans('Name', [], 'Admin.Global'),
                     'name' => 'name',
+                    'lang' => true,
                     'maxlength' => 80,
                     'required' => true,
                     'hint' => $this->trans('Provide the state name to be displayed in addresses and on invoices.', [], 'Admin.International.Help'),
@@ -268,11 +270,12 @@ class AdminStatesControllerCore extends AdminController
     protected function displayAjaxStates()
     {
         $states = Db::getInstance()->executeS('
-		SELECT s.id_state, s.name
+		SELECT sl.id_state, sl.name
 		FROM ' . _DB_PREFIX_ . 'state s
 		LEFT JOIN ' . _DB_PREFIX_ . 'country c ON (s.`id_country` = c.`id_country`)
+        LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` sl ON (s.`id_state` = sl.`id_state` AND sl.`id_lang` = ' . (int) ($this->context->language->id) . ')
 		WHERE s.id_country = ' . (int) (Tools::getValue('id_country')) . ' AND s.active = 1 AND c.`contains_states` = 1
-		ORDER BY s.`name` ASC');
+		ORDER BY s.`iso_code` ASC');
 
         if (is_array($states) && !empty($states)) {
             $list = '';
