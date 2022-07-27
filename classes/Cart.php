@@ -4043,9 +4043,9 @@ class CartCore extends ObjectModel
 
         $summary = [
             'delivery' => $delivery,
-            'delivery_state' => State::getNameById($delivery->id_state),
+            'delivery_state' => State::getNameById($id_lang, $delivery->id_state),
             'invoice' => $invoice,
-            'invoice_state' => State::getNameById($invoice->id_state),
+            'invoice_state' => State::getNameById($id_lang, $invoice->id_state),
             'formattedAddresses' => $formatted_addresses,
             'products' => array_values($products),
             'discounts' => array_values($this->getCartRules()),

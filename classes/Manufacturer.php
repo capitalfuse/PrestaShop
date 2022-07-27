@@ -565,13 +565,13 @@ class ManufacturerCore extends ObjectModel
     {
         return Db::getInstance()->executeS(
             '
-			SELECT a.*, cl.name AS `country`, s.name AS `state`
+			SELECT a.*, cl.name AS `country`, sl.name AS `state`
 			FROM `' . _DB_PREFIX_ . 'address` AS a
 			LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` AS cl ON (
 				cl.`id_country` = a.`id_country`
 				AND cl.`id_lang` = ' . (int) $idLang . '
 			)
-			LEFT JOIN `' . _DB_PREFIX_ . 'state` AS s ON (s.`id_state` = a.`id_state`)
+			LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` AS sl ON (sl.`id_state` = a.`id_state`)
 			WHERE `id_manufacturer` = ' . (int) $this->id . '
 			AND a.`deleted` = 0'
         );

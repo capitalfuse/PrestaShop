@@ -650,13 +650,14 @@ class CustomerCore extends ObjectModel
             . '-' . (int) $idLang
             . '-' . ($shareOrder ? 1 : 0);
         if (!Cache::isStored($cacheId)) {
-            $sql = 'SELECT DISTINCT a.*, cl.`name` AS country, s.name AS state, s.iso_code AS state_iso
+            $sql = 'SELECT DISTINCT a.*, cl.`name` AS country, sl.name AS state, s.iso_code AS state_iso
                     FROM `' . _DB_PREFIX_ . 'address` a
                     LEFT JOIN `' . _DB_PREFIX_ . 'country` c ON (a.`id_country` = c.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (c.`id_country` = cl.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'state` s ON (s.`id_state` = a.`id_state`)
+                    LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` sl ON (sl.`id_state` = s.`id_state`)
                     ' . ($shareOrder ? '' : Shop::addSqlAssociation('country', 'c')) . '
-                    WHERE `id_lang` = ' . (int) $idLang . ' AND `id_customer` = ' . (int) $this->id . ' AND a.`deleted` = 0';
+                    WHERE cl.`id_lang` = ' . (int) $idLang . ' AND sl.`id_lang` = ' . (int) $idLang . ' AND `id_customer` = ' . (int) $this->id . ' AND a.`deleted` = 0';
 
             $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
             Cache::store($cacheId, $result);
@@ -764,7 +765,7 @@ class CustomerCore extends ObjectModel
                       a.`postcode`,
                       a.`city`,
                       a.`id_state`,
-                      s.name AS state,
+                      sl.name AS state,
                       s.`iso_code` AS state_iso,
                       a.`id_country`,
                       cl.`name` AS country,
@@ -778,9 +779,11 @@ class CustomerCore extends ObjectModel
                     LEFT JOIN `' . _DB_PREFIX_ . 'country` co ON (a.`id_country` = co.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl ON (co.`id_country` = cl.`id_country`)
                     LEFT JOIN `' . _DB_PREFIX_ . 'state` s ON (s.`id_state` = a.`id_state`)
+                    LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` sl ON (s.`id_state` = sl.`id_state`)
                     ' . ($shareOrder ? '' : Shop::addSqlAssociation('country', 'co')) . '
                     WHERE
-                        `id_lang` = ' . (int) $idLang . '
+                        cl.`id_lang` = ' . (int) $idLang . '
+                        AND sl.`id_lang` = ' . (int) $idLang . '
                         AND `id_customer` = ' . (int) $this->id . '
                         AND a.`deleted` = 0
                         AND a.`active` = 1';

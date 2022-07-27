@@ -26,6 +26,7 @@
 
 namespace PrestaShop\PrestaShop\Adapter\Form\ChoiceProvider;
 
+use Context;
 use Country;
 use PrestaShop\PrestaShop\Core\Exception\CoreException;
 use PrestaShop\PrestaShop\Core\Form\ConfigurableFormChoiceProviderInterface;
@@ -56,7 +57,7 @@ final class CountryStateByIdChoiceProvider implements ConfigurableFormChoiceProv
                 return [];
             }
 
-            $states = State::getStatesByIdCountry($countryId, $resolvedOptions['only_active'], 'name', 'asc');
+            $states = State::getStatesByIdCountry($countryId, (int) Context::getContext()->language->id, $resolvedOptions['only_active'], 'iso_code', 'asc');
 
             foreach ($states as $state) {
                 $choices[$state['name']] = $state['id_state'];

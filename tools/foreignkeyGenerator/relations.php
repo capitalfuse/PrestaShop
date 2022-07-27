@@ -1008,6 +1008,15 @@ $relations = array(
         ),
     ),
 
+    'state_lang' => array(
+        'id_lang' => array(
+            'lang' => 'id_lang',
+        ),
+        'id_state' => array(
+            'state' => 'id_state',
+        ),
+    ),
+
     'subdomain' => array(
     ),
 

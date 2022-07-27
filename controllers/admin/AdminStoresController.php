@@ -121,8 +121,9 @@ class AdminStoresControllerCore extends AdminController
             LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl
                 ON (cl.`id_country` = a.`id_country`
                 AND cl.`id_lang` = ' . (int) $this->context->language->id . ')
-            LEFT JOIN `' . _DB_PREFIX_ . 'state` st
-                ON (st.`id_state` = a.`id_state`)
+            LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` st
+                ON (st.`id_state` = a.`id_state`
+                AND st.`id_lang` = ' . (int) $this->context->language->id . ')
             LEFT JOIN `' . _DB_PREFIX_ . 'store_lang` sl
                 ON (sl.`id_store` = a.`id_store`
                 AND sl.`id_lang` = ' . (int) $this->context->language->id . ') ';
@@ -583,7 +584,7 @@ class AdminStoresControllerCore extends AdminController
             $state = new State($value);
             if ($state->id) {
                 Configuration::updateValue('PS_SHOP_STATE_ID', $value);
-                Configuration::updateValue('PS_SHOP_STATE', pSQL($state->name));
+                Configuration::updateValue('PS_SHOP_STATE', pSQL($state->name[$this->context->language->id]));
             }
         }
     }

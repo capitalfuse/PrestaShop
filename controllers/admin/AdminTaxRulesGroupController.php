@@ -149,9 +149,9 @@ class AdminTaxRulesGroupControllerCore extends AdminController
 
         $this->_join = '
 			LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` c
-				ON (a.`id_country` = c.`id_country` AND id_lang = ' . (int) $this->context->language->id . ')
-			LEFT JOIN `' . _DB_PREFIX_ . 'state` s
-				ON (a.`id_state` = s.`id_state`)
+                ON (a.`id_country` = c.`id_country` AND c.`id_lang` = ' . (int) $this->context->language->id . ')
+			LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` s
+				ON (a.`id_state` = s.`id_state` AND s.`id_lang` = ' . (int) $this->context->language->id . ')
 			LEFT JOIN `' . _DB_PREFIX_ . 'tax` t
 				ON (a.`id_tax` = t.`id_tax`)';
         $this->_where = 'AND `id_tax_rules_group` = ' . (int) $id_group;

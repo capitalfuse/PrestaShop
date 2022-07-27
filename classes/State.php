@@ -50,11 +50,12 @@ class StateCore extends ObjectModel
     public static $definition = [
         'table' => 'state',
         'primary' => 'id_state',
+        'multilang' => true,
         'fields' => [
             'id_country' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId', 'required' => true],
             'id_zone' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId', 'required' => true],
             'iso_code' => ['type' => self::TYPE_STRING, 'validate' => 'isStateIsoCode', 'required' => true, 'size' => 7],
-            'name' => ['type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 32],
+            'name' => ['type' => self::TYPE_STRING, 'lang' => true, 'validate' => 'isGenericName', 'required' => true, 'size' => 32],
             'active' => ['type' => self::TYPE_BOOL, 'validate' => 'isBool'],
         ],
     ];
@@ -66,34 +67,37 @@ class StateCore extends ObjectModel
         ],
     ];
 
-    public static function getStates($idLang = false, $active = false)
+    public static function getStates($idLang, $active = false)
     {
         return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS('
-		SELECT `id_state`, `id_country`, `id_zone`, `iso_code`, `name`, `active`
-		FROM `' . _DB_PREFIX_ . 'state`
+        SELECT s.`id_state`, s.`id_country`, s.`id_zone`, s.`iso_code`, sl.`name`, s.`active`
+		FROM `' . _DB_PREFIX_ . 'state` s
+        LEFT JOIN `' . _DB_PREFIX_ . 'state_lang` sl ON (s.`id_state` = sl.`id_state` AND sl.`id_lang` = ' . (int) $idLang . ')
 		' . ($active ? 'WHERE active = 1' : '') . '
-		ORDER BY `name` ASC');
+		ORDER BY s.`iso_code` ASC');
     }
 
     /**
      * Get a state name with its ID.
      *
+     * @param int $idLang Language ID
      * @param int $idState Country ID
      *
      * @return string State name
      */
-    public static function getNameById($idState)
+    public static function getNameById($idLang, $idState)
     {
         if (!$idState) {
             return false;
         }
-        $cacheId = 'State::getNameById_' . (int) $idState;
+        $cacheId = 'State::getNameById_' . (int) $idState . '_' . $idLang;
         if (!Cache::isStored($cacheId)) {
             $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue(
                 '
 				SELECT `name`
-				FROM `' . _DB_PREFIX_ . 'state`
-				WHERE `id_state` = ' . (int) $idState
+				FROM `' . _DB_PREFIX_ . 'state_lang`
+				WHERE `id_lang` = ' . (int) $idLang . '
+                AND `id_state` = ' . (int) $idState
             );
             Cache::store($cacheId, $result);
 
@@ -118,8 +122,8 @@ class StateCore extends ObjectModel
         $cacheId = 'State::getIdByName_' . pSQL($state);
         if (!Cache::isStored($cacheId)) {
             $result = (int) Db::getInstance()->getValue('
-				SELECT `id_state`
-				FROM `' . _DB_PREFIX_ . 'state`
+                SELECT DISTINCT `id_state`
+                FROM `' . _DB_PREFIX_ . 'state_lang`
 				WHERE `name` = \'' . pSQL($state) . '\'
 			');
             Cache::store($cacheId, $result);
@@ -205,10 +209,11 @@ class StateCore extends ObjectModel
      * @param bool $active true if the state must be active
      * @param string $orderBy order by field
      * @param string $sort sort key (ASC or DESC)
+     * @param int $idLang Language ID
      *
      * @return array|false|mysqli_result|PDOStatement|resource|null
      */
-    public static function getStatesByIdCountry($idCountry, $active = false, $orderBy = null, $sort = 'ASC')
+    public static function getStatesByIdCountry($idCountry, $idLang = false, $active = false, $orderBy = null, $sort = 'ASC')
     {
         if (empty($idCountry)) {
             die(Tools::displayError());
@@ -217,9 +222,10 @@ class StateCore extends ObjectModel
         $available_sort = ['DESC', 'ASC', 'asc', 'desc'];
 
         $sql = new DbQuery();
-        $sql->select('*');
+        $sql->select('sl.*, s.`id_country`, s.`id_zone`, s.`iso_code`, s.`tax_behavior`, s.`active`');
         $sql->from('state', 's');
-        $sql->where('s.id_country = ' . (int) $idCountry . ($active ? ' AND s.active = 1' : ''));
+        $sql->leftJoin('state_lang', 'sl', 's.`id_state` = sl.`id_state`');
+        $sql->where('s.id_country = ' . (int) $idCountry . ($active ? ' AND s.active = 1' : '') . ' AND sl.`id_lang` = ' . (int) $idLang);
 
         if (array_key_exists($orderBy, static::$definition['fields'])) {
             $sort = trim($sort);
